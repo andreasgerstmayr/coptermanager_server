@@ -1,5 +1,6 @@
 defmodule CoptermanagerCore.Manager do
   use GenServer
+  alias CoptermanagerCore.Protocol
 
   defmodule State do
     defstruct copters: []
@@ -14,7 +15,7 @@ defmodule CoptermanagerCore.Manager do
   end
 
   def handle_call({:bind, type}, _from, state) do
-    cmdcode = 0x01
+    cmdcode = Protocol.commands.COPTER_BIND
     # TODO: send bind cmd (0x01), wait response
     copterid = 5
 
@@ -23,15 +24,16 @@ defmodule CoptermanagerCore.Manager do
   end
 
   def handle_call({:command, copterid, command, value}, _from, state) do
+    commandcodes = Protocol.commands()
     cmdcode = case command do
-      "throttle" -> 0x02
-      "rudder" -> 0x03
-      "aileron" -> 0x04
-      "elevator" -> 0x05
-      "led" -> 0x06
-      "flip" -> 0x07
-      "video" -> 0x08
-      "land" -> 0x09
+      "throttle" -> commandcodes.throttle
+      "rudder" -> commandcodes.rudder
+      "aileron" -> commandcodes.aileron
+      "elevator" -> commandcodes.elevator
+      "led" -> commandcodes.led
+      "flip" -> commandcodes.flip
+      "video" -> commandcodes.video
+      "land" -> commandcodes.land
     end
 
     # TODO: send cmd, wait response
