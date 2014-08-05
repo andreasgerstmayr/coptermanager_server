@@ -1,0 +1,8 @@
+%{"cowboy": {:package, "1.0.0"},
+  "cowlib": {:package, "1.0.0"},
+  "inflex": {:package, "0.2.4"},
+  "jazz": {:package, "0.1.2"},
+  "linguist": {:package, "0.1.1"},
+  "phoenix": {:git, "git://github.com/phoenixframework/phoenix.git", "cb6a9ab5f9e828c5680c428cdd058b8982b6c006", []},
+  "plug": {:package, "0.5.3"},
+  "ranch": {:package, "1.0.0"}}
