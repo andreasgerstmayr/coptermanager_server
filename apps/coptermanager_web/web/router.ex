@@ -5,6 +5,6 @@ defmodule CoptermanagerWeb.Router do
   get "/", CoptermanagerWeb.PageController, :index, as: :page
 
   get "/api/copter", CoptermanagerWeb.Api.CopterController, :list
-  get "/api/copter/bind", CoptermanagerWeb.Api.CopterController, :bind
-  get "/api/copter/:copterid/:command", CoptermanagerWeb.Api.CopterController, :command
+  post "/api/copter", CoptermanagerWeb.Api.CopterController, :bind
+  post "/api/copter/:copterid/:command", CoptermanagerWeb.Api.CopterController, :command
 end
