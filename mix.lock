@@ -5,4 +5,5 @@
   "linguist": {:package, "0.1.1"},
   "phoenix": {:git, "git://github.com/phoenixframework/phoenix.git", "cb6a9ab5f9e828c5680c428cdd058b8982b6c006", []},
   "plug": {:package, "0.5.3"},
+  "porcelain": {:package, "1.1.2"},
   "ranch": {:package, "1.0.0"}}

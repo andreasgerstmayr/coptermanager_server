@@ -8,32 +8,37 @@ defmodule CoptermanagerWeb.Api.CopterController do
   end
 
   def bind(conn, %{"type" => type}) do
-    copterid = GenServer.call(:manager, {:bind, type})
+    json = case GenServer.call(:manager, {:bind, type}) do
+      {:ok, copterid} ->
+        %{"result" => "success", "copterid" => copterid}
 
-    result = if copterid > 0 do
-      "success"
-    else
-      "error"
+      {:error, errormessage} ->
+        %{"result" => "error", "error" => errormessage}
     end
-
-    json = %{"result" => result, "copterid" => copterid}
     json conn, JSON.encode!(json)
   end
 
   def command(conn, %{"copterid" => copterid, "command" => command, "value" => value}) do
-    resultcode = GenServer.call(:manager, {:command, copterid, command, value})
+    json = case Integer.parse(copterid) do
+      :error ->
+        %{"result" => "error", "error" => "invalid copterid, must be a number"}
 
-    result = if resultcode >= 0 do
-      "success"
-    else
-      "error"
+      {copterid, _} when copterid < 1 ->
+        %{"result" => "error", "error" => "invalid copterid, must be a positive number (greater than 0)"}
+
+      {copterid, _} ->
+        case GenServer.call(:manager, {:command, copterid, command, value}) do
+          :ok ->
+            %{"result" => "success"}
+
+          {:error, errormessage} ->
+            %{"result" => "error", "error" => errormessage}
+        end
     end
-
-    json = %{"result" => result, "code" => resultcode}
     json conn, JSON.encode!(json)
   end
   
   def command(conn, %{"copterid" => copterid, "command" => command}) do
-    command(conn, %{"copterid" => copterid, "command" => command, "value" => 0})
+    command(conn, %{"copterid" => copterid, "command" => command, "value" => "0"})
   end
 end

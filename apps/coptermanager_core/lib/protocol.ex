@@ -16,4 +16,9 @@ defmodule CoptermanagerCore.Protocol do
     %{"hubsan_x4" => 0x01}
   end
 
+  def statuscodes do
+    %{:protocol_ok    => 0x00,
+      :protocol_error => 0xFF}
+  end
+
 end

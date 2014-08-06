@@ -14,7 +14,7 @@ defmodule CoptermanagerCore.Mixfile do
   #
   # Type `mix help compile.app` for more information
   def application do
-    [applications: [:logger],
+    [applications: [:logger, :porcelain],
      mod: {CoptermanagerCore, []}]
   end
 
@@ -32,6 +32,6 @@ defmodule CoptermanagerCore.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    []
+    [{:porcelain, "~> 1.1.2"}]
   end
 end

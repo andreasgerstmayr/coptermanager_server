@@ -28,3 +28,10 @@ use Mix.Config
 #
 #     import_config "../apps/foo/config/config.exs"
 #     import_config "../apps/bar/config/config.exs"
+
+config :porcelain, :driver, Porcelain.Driver.Basic
+
+config :coptermanager_core,
+  python_win32_executable: "C:/Python27/python.exe",
+  serial_port: "/dev/ttyS0",
+  baudrate: 9600
