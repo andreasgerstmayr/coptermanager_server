@@ -33,7 +33,7 @@ if __name__ == '__main__':
     sys.stdout.write("only integer values are allowed")
     sys.exit(1)
 
-  ser = Serial('/dev/tty.usbserial', 9600)
+  ser = Serial(serial_port, int(baudrate))
   send_command(ser, int(copterid), int(command), int(value))
   response = read_response(ser)
   sys.stdout.write(str(response))
