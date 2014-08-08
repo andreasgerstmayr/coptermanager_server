@@ -13,7 +13,7 @@ class Serial:
 
   def read(self):
     time.sleep(1)
-    return bytearray([0x0,2])
+    return bytearray([0x1,2])
 
 def send_command(ser, copterid, command, value):
   data = bytearray([copterid, command, value])

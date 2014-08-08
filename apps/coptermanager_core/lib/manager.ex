@@ -22,6 +22,8 @@ defmodule CoptermanagerCore.Manager do
     end
   end
 
+  defp send_serial_command(copterid, command, value) when not is_integer(copterid), do: send_serial_command(0, command, value)
+  defp send_serial_command(copterid, command, value) when not is_integer(value), do: send_serial_command(copterid, command, 0)
   defp send_serial_command(copterid, command, value) do
     serial_port = Application.get_env(:coptermanager_core, :serial_port)
     baudrate = Integer.to_string(Application.get_env(:coptermanager_core, :baudrate))
@@ -50,7 +52,7 @@ defmodule CoptermanagerCore.Manager do
         {:reply, {:error, "unknown type"}, state}
 
       _ ->
-        {stdout, stderr, exitcode} = send_serial_command(0, cmdcode, type)
+        {stdout, stderr, exitcode} = send_serial_command(nil, cmdcode, type)
         
         cond do
           exitcode != 0 ->
@@ -78,27 +80,30 @@ defmodule CoptermanagerCore.Manager do
       "flip" -> commandcodes.copter_flip
       "video" -> commandcodes.copter_video
       "land" -> commandcodes.copter_land
+      "emergency" -> commandcodes.copter_emergency
+      "disconnect" -> commandcodes.copter_disconnect
       _ -> nil
     end
 
-    value = case command do
-      "led" ->
+    value = cond do
+      command in ["led", "flip", "video"] ->
         case value do
           "on" -> 0x01
           "off" -> 0x00
           _ -> nil
         end
-
-      _ ->
-        case Integer.parse(value) do
-          :error -> nil
-          {number, _} -> number
-        end
+      true -> value
     end
 
     cond do
-      cmdcode == nil or value == nil ->
-        {:reply, {:error, "unknown command or command value"}, state}
+      cmdcode == nil ->
+        {:reply, {:error, "unknown command"}, state}
+
+      command in ["led", "flip", "video"] and not is_integer(value) ->
+        {:reply, {:error, "invalid command value, valid values: 'on', 'off' "}, state}
+
+      command in ["throttle", "rudder", "aileron", "elevator"] and not is_integer(value) ->
+        {:reply, {:error, "invalid command value, a integer is required"}, state}
 
       true ->
         {stdout, stderr, exitcode} = send_serial_command(copterid, cmdcode, value)
@@ -110,7 +115,13 @@ defmodule CoptermanagerCore.Manager do
             {:reply, {:error, "command error"}, state}
 
           true ->
-            {:reply, :ok, state}
+            case command do
+              "disconnect" ->
+                state = %State{copters: List.delete(state.copters, copterid)}
+                {:reply, :ok, state}
+              _ ->
+                {:reply, :ok, state}
+            end
         end
     end
   end
