@@ -27,7 +27,9 @@ defmodule CoptermanagerWeb.Mixfile do
   defp deps do
     [
       {:phoenix, github: "phoenixframework/phoenix"},
-      {:cowboy, "~> 1.0.0"}
+      {:cowboy, "~> 1.0.0"},
+      {:timex, "~> 0.11.0"},
+      {:phoenix_dtl, github: "andihit/phoenix_dtl"}
     ]
   end
 end

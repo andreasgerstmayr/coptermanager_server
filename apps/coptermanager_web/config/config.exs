@@ -17,6 +17,12 @@ config :phoenix, CoptermanagerWeb.Router,
 config :phoenix, :logger,
   level: :error
 
+config :phoenix, :template_engines,
+  dtl: PhoenixDtl.Engine,
+  eex: Phoenix.Template.EExEngine
+
+config :coptermanager_web,
+  manager_node: {:manager, :"coptermanager_core@#{elem(:inet.gethostname(), 1)}"}
 
 # Import environment specific config. Note, this must remain at the bottom of
 # this file to properly merge your previous config entries.

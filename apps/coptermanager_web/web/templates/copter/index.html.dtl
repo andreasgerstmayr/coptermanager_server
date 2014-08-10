@@ -1,0 +1,7 @@
+{% extends 'base.html.dtl' %}
+
+{% block content %}
+<h1 class="page-header">CopterManager</h1>
+
+Please select a copter, or <a href="/copter/launch">start a new one</a>.
+{% endblock %}

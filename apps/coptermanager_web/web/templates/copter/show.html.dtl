@@ -1,0 +1,9 @@
+{% extends 'base.html.dtl' %}
+
+{% block content %}
+<h1 class="page-header">{{ copter.name }}</h1>
+
+<strong>Copter type:</strong> {{ copter_type }}<br />
+<strong>Flying time:</strong> {{ flying_time }}s
+
+{% endblock %}

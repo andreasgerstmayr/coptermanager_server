@@ -1,0 +1,7 @@
+{% extends 'base.html.dtl' %}
+
+{% block content %}
+<h1 class="page-header">Launch a new copter</h1>
+
+abc2
+{% endblock %}

@@ -2,6 +2,6 @@ defmodule CoptermanagerWeb.PageController do
   use Phoenix.Controller
 
   def index(conn, _params) do
-    render conn, "index"
+    redirect conn, "/copter"
   end
 end

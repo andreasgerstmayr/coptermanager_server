@@ -32,6 +32,8 @@ defmodule CoptermanagerCore.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [{:porcelain, "~> 1.1.2"}]
+    [{:porcelain, "~> 1.1.2"},
+     {:uuid, "~> 0.1.3"},
+     {:timex, "~> 0.11.0"}]
   end
 end

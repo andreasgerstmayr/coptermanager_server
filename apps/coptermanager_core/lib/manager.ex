@@ -1,6 +1,11 @@
 defmodule CoptermanagerCore.Manager do
   use GenServer
+  use Timex
   alias CoptermanagerCore.Protocol
+
+  defmodule Copter do
+    defstruct copterid: 0, uuid: "", name: "", copter_type: Protocol.types["hubsan_x4"], bind_time: Time.now
+  end
 
   defmodule State do
     defstruct copters: []
@@ -39,11 +44,25 @@ defmodule CoptermanagerCore.Manager do
     end
   end
 
+  defp create_copter(copterid, name, copter_type) do
+    %Copter{copterid: copterid, uuid: UUID.uuid4(), name: name, copter_type: copter_type, bind_time: Time.now}
+  end
+
   def handle_call({:list}, _from, state) do
     {:reply, state.copters, state}
   end
 
-  def handle_call({:bind, type}, _from, state) do
+  def handle_call({:get, uuid}, _from, state) do
+    copter = Enum.find(state.copters, fn(c) -> c.uuid == uuid end)
+    {:reply, copter, state}
+  end
+
+  def handle_call({:get_copter_type, copter_type}, _from, state) do
+    {type_name, type_value} = Enum.find(Protocol.types, fn({name, value}) -> value == copter_type end)
+    {:reply, type_name, state}
+  end
+
+  def handle_call({:bind, name, type}, _from, state) do
     cmdcode = Protocol.commands.copter_bind
     type = Protocol.types[type]
 
@@ -63,13 +82,16 @@ defmodule CoptermanagerCore.Manager do
 
           true ->
             {copterid, _} = Integer.parse(stdout)
-            state = %State{copters: [copterid|state.copters]}
-            {:reply, {:ok, copterid}, state}
+            copter = create_copter(copterid, name, type)
+            state = %State{copters: [copter|state.copters]}
+            {:reply, {:ok, copter.uuid}, state}
         end
     end
   end
 
-  def handle_call({:command, copterid, command, value}, _from, state) do
+  def handle_call({:command, uuid, command, value}, _from, state) do
+    copter = Enum.find(state.copters, fn(c) -> c.uuid == uuid end)
+
     commandcodes = Protocol.commands
     cmdcode = case command do
       "throttle" -> commandcodes.copter_throttle
@@ -96,6 +118,9 @@ defmodule CoptermanagerCore.Manager do
     end
 
     cond do
+      copter == nil ->
+        {:reply, {:error, "unknown copter"}, state}
+
       cmdcode == nil ->
         {:reply, {:error, "unknown command"}, state}
 
@@ -106,7 +131,7 @@ defmodule CoptermanagerCore.Manager do
         {:reply, {:error, "invalid command value, a integer is required"}, state}
 
       true ->
-        {stdout, stderr, exitcode} = send_serial_command(copterid, cmdcode, value)
+        {stdout, stderr, exitcode} = send_serial_command(copter.copterid, cmdcode, value)
         cond do
           exitcode != 0 ->
             {:reply, {:error, get_error_message(stderr, stdout)}, state}
@@ -117,7 +142,8 @@ defmodule CoptermanagerCore.Manager do
           true ->
             case command do
               "disconnect" ->
-                state = %State{copters: List.delete(state.copters, copterid)}
+                copters = List.delete(state.copters, copter)
+                state = %State{copters: copters}
                 {:reply, :ok, state}
               _ ->
                 {:reply, :ok, state}
