@@ -38,7 +38,7 @@ client
   <span class="glyphicon glyphicon-play"></span> Launch copter
 </button>
 
-<script src="/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/js/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("codeeditor");
     editor.getSession().setUseWorker(false);
