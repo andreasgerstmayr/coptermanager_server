@@ -12,6 +12,8 @@
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/dashboard.css" rel="stylesheet">
+    <script src="/js/lib/jquery.min.js"></script>
+    <script src="/js/lib/bootstrap.min.js"></script>
   </head>
 
   <body>
@@ -36,8 +38,5 @@
     </div>
 
     {{ inner|safe }}
-
-    <script src="/js/lib/jquery.min.js"></script>
-    <script src="/js/lib/bootstrap.min.js"></script>
   </body>
 </html>
