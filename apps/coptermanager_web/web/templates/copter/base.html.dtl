@@ -2,8 +2,8 @@
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar">
       <ul class="nav nav-sidebar">
-        {% for copter in copters %}
-          <li><a href="/copter/{{ copter.uuid }}">{{ copter.name }}</a></li>
+        {% for c in copters %}
+          <li class="{% if c.uuid == copter.uuid %}active{% endif %}"><a href="/copter/{{ c.uuid }}">{{ c.name }}</a></li>
         {% endfor %}
       </ul>
       <ul class="nav nav-sidebar">
