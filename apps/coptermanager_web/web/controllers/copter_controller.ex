@@ -23,6 +23,6 @@ defmodule CoptermanagerWeb.CopterController do
 
   def launch(conn, _params) do
     copters = GenServer.call(Config.get(:manager_node), {:list})
-    render conn, "launch", copters: copters
+    render conn, "launch", copters: copters, api_endpoint: "http://localhost:4000/api"
   end
 end

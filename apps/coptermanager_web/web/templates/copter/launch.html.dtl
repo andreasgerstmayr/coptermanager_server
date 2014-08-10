@@ -3,5 +3,46 @@
 {% block content %}
 <h1 class="page-header">Launch a new copter</h1>
 
-abc2
+<style type="text/css" media="screen">
+    #codeeditor { 
+        width: 100%;
+        height: 500px;
+    }
+</style>
+<pre id="codeeditor">
+var coptermanager = require('coptermanager');
+var client = coptermanager.createRemoteClient({endpoint: '{{ api_endpoint }}'});
+
+client.takeoff();
+
+client
+  .after(5000, function() {
+    this.clockwise(50);
+  })
+  .after(1000, function() {
+    this.ledOn();
+  })
+  .after(3000, function() {
+    this.flipOn();
+  })
+  .after(1000, function() {
+    this.land();
+  })
+  .after(1000, function() {
+    this.disconnect();
+  });
+</pre>
+<br />
+
+<button type="button" class="btn btn-primary btn-lg">
+  <span class="glyphicon glyphicon-play"></span> Launch copter
+</button>
+
+<script src="/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("codeeditor");
+    editor.getSession().setUseWorker(false);
+    editor.setTheme("ace/theme/xcode");
+    editor.getSession().setMode("ace/mode/javascript");
+</script>
 {% endblock %}
