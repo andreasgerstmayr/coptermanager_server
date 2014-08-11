@@ -16,7 +16,7 @@ defmodule CoptermanagerCore.Manager do
   end
 
   def init(state) do
-    {:ok, _} = :timer.send_interval(Protocol.inactivity_timer, :inactivity_check)
+    {:ok, _} = :timer.send_interval(Protocol.inactivity_timer * 1000, :inactivity_check)
     {:ok, state}
   end
 

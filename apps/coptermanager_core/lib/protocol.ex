@@ -23,7 +23,7 @@ defmodule CoptermanagerCore.Protocol do
       :protocol_error => 0xFF}
   end
 
-  def inactivity_timer, do: 1*60*1000
-  def max_inactivity_time, do: 5*60*1000
+  def inactivity_timer, do: 1*60 # sec
+  def max_inactivity_time, do: 5*60 # sec
 
 end
