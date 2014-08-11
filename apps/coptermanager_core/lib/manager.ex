@@ -63,7 +63,7 @@ defmodule CoptermanagerCore.Manager do
   end
 
   def handle_call({:get_copter_type, copter_type}, _from, state) do
-    {type_name, type_value} = Enum.find(Protocol.types, fn({name, value}) -> value == copter_type end)
+    {type_name, _type_value} = Enum.find(Protocol.types, fn({_name, value}) -> value == copter_type end)
     {:reply, type_name, state}
   end
 
