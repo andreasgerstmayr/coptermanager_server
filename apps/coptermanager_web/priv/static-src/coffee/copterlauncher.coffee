@@ -52,6 +52,12 @@ class CopterLauncher
     $('#launchBtn').fadeOut complete: ->
       $('#runningBtn').hide().removeClass('hide').fadeIn()
 
+  updateCopterList: ->
+    $.get '/copter/_copterlist', (data) ->
+      $('#copterlist').fadeOut complete: ->
+        $('#copterlist').html(data)
+        $('#copterlist').fadeIn()
+
   launchCopter: (code) ->
     @showRunningBtn()
     $('#consoleContainer').empty()
@@ -63,10 +69,13 @@ class CopterLauncher
     @client = client
     @client.on 'log', (message) ->
       $('#consoleContainer').append '<p>' + message + '</p>'
+    @client.on 'takeoff', =>
+      @updateCopterList()
 
   clientFinished: ->
     @client = null
     @showLaunchBtn()
+    @updateCopterList()
 
   javascriptError: (error) ->
     $('#consoleContainer').append "<p class='text-danger'>JavaScript error: " + error + "</p>"

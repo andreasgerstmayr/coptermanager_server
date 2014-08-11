@@ -5,6 +5,7 @@ defmodule CoptermanagerWeb.Router do
   get "/", CoptermanagerWeb.PageController, :index
 
   get "/copter", CoptermanagerWeb.CopterController, :index
+  get "/copter/_copterlist", CoptermanagerWeb.CopterController, :copterlist
   get "/copter/launch", CoptermanagerWeb.CopterController, :launch
   get "/copter/:uuid", CoptermanagerWeb.CopterController, :show
 

@@ -8,6 +8,11 @@ defmodule CoptermanagerWeb.CopterController do
     render conn, "index", copters: copters
   end
 
+  def copterlist(conn, _params) do
+    copters = GenServer.call(Config.get(:manager_node), {:list})
+    render conn, "copterlist", within: nil, copters: copters
+  end
+
   def show(conn, %{"uuid" => uuid}) do
     copter = GenServer.call(Config.get(:manager_node), {:get, uuid})
     copters = GenServer.call(Config.get(:manager_node), {:list})

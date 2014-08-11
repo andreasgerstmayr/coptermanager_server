@@ -1,11 +1,8 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar">
-      <ul class="nav nav-sidebar">
-        {% for c in copters %}
-          <li class="{% if c.uuid == copter.uuid %}active{% endif %}"><a href="/copter/{{ c.uuid }}">{{ c.name }}</a></li>
-        {% endfor %}
-      </ul>
+      {% include 'copterlist.html.dtl' %}
+
       <ul class="nav nav-sidebar">
         <li><a href="/copter/launch"><span class="glyphicon glyphicon-plus"></span> Launch a new copter</a></li>
       </ul>
