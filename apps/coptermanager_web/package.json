@@ -1,0 +1,17 @@
+{
+  "name": "coptermanager",
+  "version": "0.1.1",
+  "description": "Control your drones with an API",
+  "author": "Andreas Gerstmayr",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/andihit/coptermanager_server.git"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "gulp": "~3.8.7",
+    "gulp-coffee": "~2.1.1",
+    "gulp-util": "~3.0.0"
+  }
+}

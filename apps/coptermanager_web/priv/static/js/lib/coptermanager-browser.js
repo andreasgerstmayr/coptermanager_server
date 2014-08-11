@@ -356,50 +356,60 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 module.exports=require('E5Ievv');
 },{}],"E5Ievv":[function(require,module,exports){
 (function() {
-  var Environment, coptermanager, registerClient;
+  var ClientFactory, Clients, Environment, EventEmitter, clientFactory, _;
+
+  EventEmitter = require('events').EventEmitter;
+
+  _ = require('underscore');
 
   Environment = require('./utils/environment');
 
-  module.exports.Clients = require('./clients');
+  Clients = require('./clients');
 
-  coptermanager = module.exports;
+  ClientFactory = (function() {
+    function ClientFactory() {}
 
-  registerClient = function(client) {
-    if (Environment.isNode) {
-      client.on('log', console.log);
-    }
-    if (Environment.isBrowser && window.coptermanager) {
-      return window.coptermanager.registerClient(client);
-    }
-  };
+    _.extend(ClientFactory.prototype, EventEmitter.prototype);
 
-  module.exports.createSerialPortClient = function(options) {
-    var client;
-    if (options == null) {
-      options = {};
-    }
-    client = new coptermanager.Clients.SerialPortClient(options);
-    registerClient(client);
-    return client;
-  };
+    ClientFactory.prototype.createSerialPortClient = function(options) {
+      var client;
+      if (options == null) {
+        options = {};
+      }
+      client = new Clients.SerialPortClient(options);
+      this.emit('create', client);
+      return client;
+    };
 
-  module.exports.createLocalClient = coptermanager.createSerialPortClient;
+    ClientFactory.prototype.createLocalClient = ClientFactory.prototype.createSerialPortClient;
 
-  module.exports.createWebClient = function(options) {
-    var client;
-    if (options == null) {
-      options = {};
-    }
-    client = new coptermanager.Clients.WebClient(options);
-    registerClient(client);
-    return client;
-  };
+    ClientFactory.prototype.createWebClient = function(options) {
+      var client;
+      if (options == null) {
+        options = {};
+      }
+      client = new Clients.WebClient(options);
+      this.emit('create', client);
+      return client;
+    };
 
-  module.exports.createRemoteClient = coptermanager.createWebClient;
+    ClientFactory.prototype.createRemoteClient = ClientFactory.prototype.createWebClient;
+
+    return ClientFactory;
+
+  })();
+
+  module.exports = clientFactory = new ClientFactory;
+
+  if (Environment.isNode) {
+    clientFactory.on('create', function(client) {
+      return client.on('log', console.log);
+    });
+  }
 
 }).call(this);
 
-},{"./clients":2,"./utils/environment":6}],6:[function(require,module,exports){
+},{"./clients":2,"./utils/environment":6,"events":17,"underscore":9}],6:[function(require,module,exports){
 (function() {
   var isBrowser, isNode;
 
@@ -4621,7 +4631,7 @@ module.exports=require(2)
 module.exports=require(3)
 },{"../utils/environment":14,"./client":10,"xmlhttprequest":16}],13:[function(require,module,exports){
 module.exports=require("E5Ievv")
-},{"./clients":11,"./utils/environment":14}],14:[function(require,module,exports){
+},{"./clients":11,"./utils/environment":14,"events":17,"underscore":19}],14:[function(require,module,exports){
 module.exports=require(6)
 },{}],15:[function(require,module,exports){
 module.exports=require(7)
