@@ -15,6 +15,11 @@ defmodule CoptermanagerCore.Manager do
     GenServer.start_link(__MODULE__, %State{}, opts)
   end
 
+  def init(state) do
+    {:ok, _} = :timer.send_interval(Protocol.inactivity_timer, :inactivity_check)
+    {:ok, state}
+  end
+
   defp exec_python(file, args) do
     case :os.type() do
       {:unix, _} -> Porcelain.exec(file, args)
@@ -150,5 +155,11 @@ defmodule CoptermanagerCore.Manager do
             end
         end
     end
+  end
+
+  def handle_info(:inactivity_check, state) do
+    copters = Enum.filter(state.copters, fn(c) -> Time.elapsed(c.bind_time, :secs) < Protocol.max_inactivity_time end)
+    state = %State{copters: copters}
+    {:noreply, state}
   end
 end
