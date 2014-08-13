@@ -4,10 +4,7 @@
 <h1 class="page-header">Launch a new copter</h1>
 
 <pre id="codeeditor">
-var coptermanager = require('coptermanager');
-var client = coptermanager.createRemoteClient({endpoint: '{{ api_endpoint }}'});
-
-client.takeoff();
+client.bind();
 
 client
   .after(5000, function() {

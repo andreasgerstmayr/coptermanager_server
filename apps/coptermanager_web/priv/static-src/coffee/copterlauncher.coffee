@@ -2,8 +2,6 @@ coptermanager = require 'coptermanager'
 
 class CopterLauncher
   constructor: ->
-    @client = null
-
     coptermanager.on 'create', @clientCreated
     window.onerror = @javascriptError
 
@@ -22,12 +20,12 @@ class CopterLauncher
     @launchCopter code
 
   emergencyBtnClick: =>
-    unless @client
+    unless window.client
       alert 'copter not started'
-    else unless @client.copterid
+    else unless window.client.copterid
       alert "copter isn't flying"
     else
-      uuid = @client.copterid
+      uuid = window.client.copterid
 
       $.ajax
         url: API_ENDPOINT + '/copter/' + uuid + '/emergency'
@@ -62,24 +60,27 @@ class CopterLauncher
     @showRunningBtn()
     $('#consoleContainer').empty()
 
-    fn = new Function(code + '; window.copterLauncher.client.after(0, function() { window.copterLauncher.clientFinished(); });')
+    unless window.client
+      window.client = coptermanager.createRemoteClient(endpoint: API_ENDPOINT)
+
+    fn = new Function(code + '; client.after(0, function() { window.copterLauncher.scriptFinished(); });')
     fn()
 
   clientCreated: (client) =>
-    @client = client
-    @client.on 'log', (message) ->
+    client.on 'log', (message) ->
       $('#consoleContainer').append '<p>' + message + '</p>'
-    @client.on 'takeoff', =>
+    client.on 'bind', =>
+      @updateCopterList()
+    client.on 'disconnect', =>
       @updateCopterList()
 
-  clientFinished: ->
-    @client = null
+  scriptFinished: ->
     @showLaunchBtn()
-    @updateCopterList()
 
   javascriptError: (error) ->
     $('#consoleContainer').append "<p class='text-danger'>JavaScript error: " + error + "</p>"
 
 
 $(document).ready ->
+  window.client = null
   window.copterLauncher = copterLauncher = new CopterLauncher
