@@ -106,7 +106,6 @@ defmodule CoptermanagerCore.Manager do
       "led" -> commandcodes.copter_led
       "flip" -> commandcodes.copter_flip
       "video" -> commandcodes.copter_video
-      "land" -> commandcodes.copter_land
       "emergency" -> commandcodes.copter_emergency
       "disconnect" -> commandcodes.copter_disconnect
       _ -> nil
@@ -157,8 +156,17 @@ defmodule CoptermanagerCore.Manager do
     end
   end
 
+  def copter_active?(copter) do
+    case Time.elapsed(copter.bind_time, :secs) < Protocol.max_inactivity_time do
+      true -> true
+      false ->
+        send_serial_command(copter.copterid, Protocol.commands.copter_disconnect, nil)
+        false
+    end
+  end
+
   def handle_info(:inactivity_check, state) do
-    copters = Enum.filter(state.copters, fn(c) -> Time.elapsed(c.bind_time, :secs) < Protocol.max_inactivity_time end)
+    copters = Enum.filter(state.copters, &copter_active?/1)
     state = %State{copters: copters}
     {:noreply, state}
   end

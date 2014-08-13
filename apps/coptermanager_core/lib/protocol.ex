@@ -9,9 +9,8 @@ defmodule CoptermanagerCore.Protocol do
       :copter_led        => 0x06,
       :copter_flip       => 0x07,
       :copter_video      => 0x08,
-      :copter_land       => 0x09,
-      :copter_emergency  => 0x0A,
-      :copter_disconnect => 0x0B}
+      :copter_emergency  => 0x09,
+      :copter_disconnect => 0x0A}
   end
 
   def types do
@@ -24,6 +23,6 @@ defmodule CoptermanagerCore.Protocol do
   end
 
   def inactivity_timer, do: 1*60 # sec
-  def max_inactivity_time, do: 5*60 # sec
+  def max_inactivity_time, do: 10*60 # sec
 
 end
