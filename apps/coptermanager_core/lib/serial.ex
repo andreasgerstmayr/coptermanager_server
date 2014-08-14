@@ -33,6 +33,10 @@ defmodule CoptermanagerCore.Serial do
     end
   end
 
+  def send_command(server, copterid, command, value) do
+    GenServer.call server, {copterid, command, value}
+  end
+
   def handle_call({copterid, command, value}, from, state) when not is_integer(copterid), do: handle_call({0, command, value}, from, state)
   def handle_call({copterid, command, value}, from, state) when not is_integer(value), do: handle_call({copterid, command, 0}, from, state)
   def handle_call({copterid, command, value}, _from, state) do
