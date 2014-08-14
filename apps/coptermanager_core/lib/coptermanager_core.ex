@@ -5,6 +5,7 @@ defmodule CoptermanagerCore do
     import Supervisor.Spec, warn: false
 
     children = [
+      worker(CoptermanagerCore.Serial, [[name: :serial]]),
       worker(CoptermanagerCore.Manager, [[name: :manager]])
     ]
 

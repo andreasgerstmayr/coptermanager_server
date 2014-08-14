@@ -20,35 +20,6 @@ defmodule CoptermanagerCore.Manager do
     {:ok, state}
   end
 
-  defp exec_python(file, args) do
-    case :os.type() do
-      {:unix, _} -> Porcelain.exec(file, args)
-      {:win32, _} ->
-        case Application.get_env(:coptermanager_core, :python_win32_executable) do
-          nil -> raise "please specify the path to python.exe"
-          _ -> Porcelain.exec(Application.get_env(:coptermanager_core, :python_win32_executable), [file|args])
-        end
-      _ -> raise "Unknown operating system"
-    end
-  end
-
-  defp send_serial_command(copterid, command, value) when not is_integer(copterid), do: send_serial_command(0, command, value)
-  defp send_serial_command(copterid, command, value) when not is_integer(value), do: send_serial_command(copterid, command, 0)
-  defp send_serial_command(copterid, command, value) do
-    serial_port = Application.get_env(:coptermanager_core, :serial_port)
-    baudrate = Integer.to_string(Application.get_env(:coptermanager_core, :baudrate))
-    args = [serial_port, baudrate, Integer.to_string(copterid), Integer.to_string(command), Integer.to_string(value)]
-    %Porcelain.Result{out: stdout, err: stderr, status: exitcode} = exec_python(Path.join(__DIR__, "../../../external/sendserialcmd.py"), args)
-    {stdout, stderr, exitcode}
-  end
-
-  defp get_error_message(stdout, stderr) do
-    case stderr do
-      nil -> stdout
-      _ -> stderr
-    end
-  end
-
   defp create_copter(copterid, name, copter_type) do
     %Copter{copterid: copterid, uuid: UUID.uuid4(), name: name, copter_type: copter_type, bind_time: Time.now}
   end
@@ -76,17 +47,13 @@ defmodule CoptermanagerCore.Manager do
         {:reply, {:error, "unknown type"}, state}
 
       _ ->
-        {stdout, stderr, exitcode} = send_serial_command(nil, cmdcode, type)
+        copterid = GenServer.call(:serial, {nil, cmdcode, type})
         
         cond do
-          exitcode != 0 ->
-            {:reply, {:error, get_error_message(stderr, stdout)}, state}
-
-          stdout == Integer.to_string(Protocol.statuscodes.protocol_error) ->
+          copterid >= 0xF0 ->
             {:reply, {:error, "unknown type or all copter slots are in use"}, state}
 
           true ->
-            {copterid, _} = Integer.parse(stdout)
             copter = create_copter(copterid, name, type)
             state = %State{copters: [copter|state.copters]}
             {:reply, {:ok, copter.uuid}, state}
@@ -135,12 +102,9 @@ defmodule CoptermanagerCore.Manager do
         {:reply, {:error, "invalid command value, a integer is required"}, state}
 
       true ->
-        {stdout, stderr, exitcode} = send_serial_command(copter.copterid, cmdcode, value)
+        result = GenServer.call(:serial, {copter.copterid, cmdcode, value})
         cond do
-          exitcode != 0 ->
-            {:reply, {:error, get_error_message(stderr, stdout)}, state}
-
-          stdout == Integer.to_string(Protocol.statuscodes.protocol_error) ->
+          result >= 0xF0 ->
             {:reply, {:error, "command error"}, state}
 
           true ->
@@ -160,7 +124,7 @@ defmodule CoptermanagerCore.Manager do
     case Time.elapsed(copter.bind_time, :secs) < Protocol.max_inactivity_time do
       true -> true
       false ->
-        send_serial_command(copter.copterid, Protocol.commands.copter_disconnect, nil)
+        GenServer.call(:serial, {copter.copterid, Protocol.commands.copter_disconnect, nil})
         false
     end
   end
