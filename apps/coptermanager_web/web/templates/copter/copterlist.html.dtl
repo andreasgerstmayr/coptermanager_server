@@ -6,6 +6,6 @@
     {% endfor %}
   </ul>
   {% else %}
-  <p>No copters flying.</p>
+  <p>No copters are flying.</p>
   {% endif %}
 </div>

@@ -3,15 +3,15 @@ var gutil = require('gulp-util');
 var coffee = require('gulp-coffee');
 
 var paths = {
-  scripts: './priv/static-src/coffee/**/*.coffee'
+  coffee: './priv/static-src/coffee/**/*.coffee'
 };
 
-gulp.task('scripts', function() {
-  return gulp.src(paths.scripts)
+gulp.task('coffee', function() {
+  return gulp.src(paths.coffee)
     .pipe(coffee().on('error', gutil.log))
     .pipe(gulp.dest('./priv/static/js/'));
 });
 
 gulp.task('watch', function() {
-  gulp.watch(paths.scripts, ['scripts']);
+  gulp.watch(paths.coffee, ['coffee']);
 });
