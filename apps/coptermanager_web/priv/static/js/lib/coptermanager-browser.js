@@ -8,24 +8,50 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
   _ = require('underscore');
 
-  Log = require('../utils/log');
+  Log = require('./utils/log');
 
   module.exports = Client = (function() {
     _.extend(Client.prototype, EventEmitter.prototype);
 
-    _.extend(Client.prototype, Log.Logger);
-
     function Client(options) {
+      var logOutputFn, loglevel;
       if (options == null) {
         options = {};
       }
-      options.loglevel = Log.Loglevel.INFO;
-      this.name = null;
-      this.copterid = null;
-      this.startTime = moment();
+      if (!options.driver) {
+        throw 'please specify a driver';
+      }
+      loglevel = options.loglevel || Log.Loglevel.INFO;
+      logOutputFn = (function(_this) {
+        return function(msg) {
+          return _this.emit('log', msg);
+        };
+      })(this);
+      this.log = new Log.Logger(loglevel, moment(), logOutputFn);
+      options.log = this.log;
+      this.driver = new options.driver(options);
+      this.driver.on('log', (function(_this) {
+        return function(msg) {
+          return _this.emit('log', msg);
+        };
+      })(this));
+      this.driver.on('exit', (function(_this) {
+        return function() {
+          return _this.exit();
+        };
+      })(this));
+      this.driver.on('bind', (function(_this) {
+        return function(data) {
+          return _this.emit('bind', data);
+        };
+      })(this));
+      this.driver.on('disconnect', (function(_this) {
+        return function() {
+          return _this.emit('disconnect');
+        };
+      })(this));
       this.afterOffset = 0;
       this.timeouts = [];
-      this.loglevel = options.loglevel;
     }
 
     Client.prototype.after = function(duration, fn) {
@@ -36,6 +62,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
     Client.prototype.exit = function() {
       var timeout, _i, _len, _ref, _results;
+      this.log.info('exiting...');
       _ref = this.timeouts;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -45,51 +72,85 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       return _results;
     };
 
-    Client.prototype.is_connected = function() {
-      return !!this.copterid;
+    Client.prototype.isConnected = function() {
+      return this.driver.isConnected();
     };
 
-    Client.prototype.bind = function(name, type, cb) {
-      if (cb == null) {
-        cb = (function() {});
-      }
-      if (this.is_connected()) {
-        this.error('this drone is already connected');
-        this.exit();
-        return false;
-      }
-      if (name) {
-        this.name = name;
+    Client.prototype.requireConnection = function() {
+      if (this.isConnected()) {
+        return true;
       } else {
-        this.name = 'copter' + Math.round(Math.random() * 1000);
-      }
-      this.info('bind ' + this.name);
-      return this;
-    };
-
-    Client.prototype.takeoff = function(cb) {
-      if (cb == null) {
-        cb = (function() {});
-      }
-      if (!this.is_connected()) {
-        this.error('this drone is not connected');
+        this.log.error('this drone is not connected');
         this.exit();
         return false;
       }
-      this.info('takeoff');
-      return this;
     };
 
-    Client.prototype.clockwise = function(degrees, cb) {
+    Client.prototype.bind = function(type, options, cb) {
+      if (type == null) {
+        type = 'hubsan_x4';
+      }
+      if (options == null) {
+        options = {};
+      }
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.is_connected()) {
-        this.error('this drone is not connected');
+      if (this.isConnected()) {
+        this.log.error('this drone is already connected');
         this.exit();
         return false;
       }
-      this.info('rotate clockwise ' + degrees + '°');
+      this.log.info('bind');
+      this.driver.bind(type, options, cb);
+      return this;
+    };
+
+    Client.prototype.throttle = function(value, cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      this.log.info("throttle " + value);
+      this.driver.throttle(value, cb);
+      return this;
+    };
+
+    Client.prototype.rudder = function(value, cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      this.log.info("rudder " + value);
+      this.driver.rudder(value, cb);
+      return this;
+    };
+
+    Client.prototype.aileron = function(value, cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      this.log.info("aileron " + value);
+      this.driver.aileron(value, cb);
+      return this;
+    };
+
+    Client.prototype.elevator = function(value, cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      this.log.info("elevator " + value);
+      this.driver.elevator(value, cb);
       return this;
     };
 
@@ -97,12 +158,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.is_connected()) {
-        this.error('this drone is not connected');
-        this.exit();
-        return false;
+      if (!this.requireConnection()) {
+        return;
       }
-      this.info('set flip ' + state);
+      this.log.info("set flip " + state);
+      this.driver.setFlip(state, cb);
       return this;
     };
 
@@ -118,12 +178,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.is_connected()) {
-        this.error('this drone is not connected');
-        this.exit();
-        return false;
+      if (!this.requireConnection()) {
+        return;
       }
-      this.info('set led ' + state);
+      this.log.info("set led " + state);
+      this.driver.setLed(state, cb);
       return this;
     };
 
@@ -135,29 +194,35 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       return this.setLed('off', cb);
     };
 
-    Client.prototype.land = function(cb) {
+    Client.prototype.setVideo = function(state, cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.is_connected()) {
-        this.error('this drone is not connected');
-        this.exit();
-        return false;
+      if (!this.requireConnection()) {
+        return;
       }
-      this.info('land');
+      this.log.info("set video " + state);
+      this.driver.setVideo(state, cb);
       return this;
+    };
+
+    Client.prototype.videoOn = function(cb) {
+      return this.setVideo('on', cb);
+    };
+
+    Client.prototype.videoOff = function(cb) {
+      return this.setVideo('off', cb);
     };
 
     Client.prototype.emergency = function(cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.is_connected()) {
-        this.error('this drone is not connected');
-        this.exit();
-        return false;
+      if (!this.requireConnection()) {
+        return;
       }
-      this.info('emergency');
+      this.log.info('emergency');
+      this.driver.emergency(cb);
       return this;
     };
 
@@ -165,12 +230,33 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.is_connected()) {
-        this.error('this drone is not connected');
-        this.exit();
-        return false;
+      if (!this.requireConnection()) {
+        return;
       }
-      this.info('disconnect');
+      this.log.info('disconnect');
+      this.driver.disconnect(cb);
+      return this;
+    };
+
+    Client.prototype.takeoff = function(cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      this.log.info('takeoff');
+      return this;
+    };
+
+    Client.prototype.land = function(cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      this.log.info('land');
       return this;
     };
 
@@ -180,22 +266,23 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
 }).call(this);
 
-},{"../utils/log":8,"events":10,"moment":11,"underscore":12}],2:[function(require,module,exports){
+},{"./utils/log":8,"events":10,"moment":11,"underscore":12}],2:[function(require,module,exports){
 (function() {
   module.exports = {
-    SerialPortClient: require('./serialportclient'),
-    WebClient: require('./webclient')
+    WebDriver: require('./webdriver')
   };
 
 }).call(this);
 
-},{"./serialportclient":9,"./webclient":3}],3:[function(require,module,exports){
+},{"./webdriver":3}],3:[function(require,module,exports){
 (function() {
-  var Client, Environment, WebClient, XMLHttpRequest,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  var Environment, EventEmitter, Log, WebClientDriver, XMLHttpRequest, _;
 
-  Client = require('./client');
+  EventEmitter = require('events').EventEmitter;
+
+  _ = require('underscore');
+
+  Log = require('../utils/log');
 
   Environment = require('../utils/environment');
 
@@ -205,18 +292,24 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     XMLHttpRequest = window.XMLHttpRequest;
   }
 
-  module.exports = WebClient = (function(_super) {
-    __extends(WebClient, _super);
+  module.exports = WebClientDriver = (function() {
+    _.extend(WebClientDriver.prototype, EventEmitter.prototype);
 
-    function WebClient(options) {
-      WebClient.__super__.constructor.apply(this, arguments);
+    function WebClientDriver(options) {
+      if (options == null) {
+        options = {};
+      }
       if (!options.endpoint) {
         throw 'please specify an endpoint in the options';
       }
       this.endpoint = options.endpoint;
+      this.log = options.log;
+      this.copterid = null;
+      this.name = null;
+      this.pin = null;
     }
 
-    WebClient.prototype.apiCall = function(path, command, data, cb) {
+    WebClientDriver.prototype.apiCall = function(path, command, data, cb) {
       var xhr;
       if (data == null) {
         data = {};
@@ -234,15 +327,15 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
             if (xhr.status === 200) {
               data = JSON.parse(xhr.responseText);
               if (data.result === 'error') {
-                _this.error(command + ': ' + data.error);
+                _this.log.error("" + command + ": " + data.error);
               }
               return cb(data);
             } else if (xhr.status === 503) {
-              _this.error('Network error. Please check your network. Is ' + _this.endpoint + ' reachable?');
-              return _this.exit();
+              _this.log.error("Network error. Please check your network. Is " + _this.endpoint + " reachable?");
+              return _this.emit('exit');
             } else {
-              _this.error(xhr.responseText);
-              return _this.exit();
+              _this.log.error(xhr.responseText);
+              return _this.emit('exit');
             }
           }
         };
@@ -250,7 +343,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       return xhr.send(JSON.stringify(data));
     };
 
-    WebClient.prototype.sendCommand = function(command, value, cb) {
+    WebClientDriver.prototype.sendCommand = function(command, value, cb) {
       var data;
       if (value == null) {
         value = null;
@@ -262,18 +355,36 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (value) {
         data.value = value;
       }
-      return this.apiCall('/copter/' + this.copterid + '/' + command, command, data);
+      return this.apiCall(("/copter/" + this.copterid + "/") + command, command, data, cb);
     };
 
-    WebClient.prototype.bind = function(name, type, cb) {
+    WebClientDriver.prototype.isConnected = function() {
+      return !!this.copterid;
+    };
+
+    WebClientDriver.prototype.requireConnection = function() {
+      if (this.isConnected()) {
+        return true;
+      } else {
+        this.log.error('this drone is not connected');
+        return false;
+      }
+    };
+
+    WebClientDriver.prototype.bind = function(type, options, cb) {
       if (type == null) {
         type = 'hubsan_x4';
+      }
+      if (options == null) {
+        options = {};
       }
       if (cb == null) {
         cb = (function() {});
       }
-      if (!WebClient.__super__.bind.apply(this, arguments)) {
-        return;
+      if (options.name) {
+        this.name = options.name;
+      } else {
+        this.name = 'copter' + Math.round(Math.random() * 1000);
       }
       this.apiCall('/copter', 'bind', {
         name: this.name,
@@ -281,7 +392,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       }, (function(_this) {
         return function(data) {
           if (data.result === 'success') {
-            _this.copterid = data.uuid;
+            _this.copterid = data.copterid;
             _this.emit('bind', _this.copterid);
           }
           return cb(data);
@@ -290,87 +401,113 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       return this;
     };
 
-    WebClient.prototype.clockwise = function(degrees, cb) {
+    WebClientDriver.prototype.throttle = function(value, cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!WebClient.__super__.clockwise.apply(this, arguments)) {
+      if (!this.requireConnection()) {
         return;
       }
-      this.sendCommand('rudder', degrees, cb);
-      return this;
+      return this.sendCommand('throttle', value, cb);
     };
 
-    WebClient.prototype.setFlip = function(state, cb) {
+    WebClientDriver.prototype.rudder = function(value, cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!WebClient.__super__.setFlip.apply(this, arguments)) {
+      if (!this.requireConnection()) {
         return;
       }
-      this.sendCommand('flip', state, cb);
-      return this;
+      return this.sendCommand('rudder', value, cb);
     };
 
-    WebClient.prototype.setLed = function(state, cb) {
+    WebClientDriver.prototype.aileron = function(value, cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!WebClient.__super__.setLed.apply(this, arguments)) {
+      if (!this.requireConnection()) {
         return;
       }
-      this.sendCommand('led', state, cb);
-      return this;
+      return this.sendCommand('aileron', value, cb);
     };
 
-    WebClient.prototype.land = function(cb) {
+    WebClientDriver.prototype.elevator = function(value, cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!WebClient.__super__.land.apply(this, arguments)) {
+      if (!this.requireConnection()) {
         return;
       }
-      this.sendCommand('land', null, cb);
-      return this;
+      return this.sendCommand('elevator', value, cb);
     };
 
-    WebClient.prototype.emergency = function(cb) {
+    WebClientDriver.prototype.setFlip = function(state, cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!WebClient.__super__.emergency.apply(this, arguments)) {
+      if (!this.requireConnection()) {
         return;
       }
-      this.sendCommand('emergency', null, cb);
-      return this;
+      return this.sendCommand('flip', state, cb);
     };
 
-    WebClient.prototype.disconnect = function(cb) {
+    WebClientDriver.prototype.setLed = function(state, cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (!WebClient.__super__.disconnect.apply(this, arguments)) {
+      if (!this.requireConnection()) {
         return;
       }
-      this.sendCommand('disconnect', null, function(data) {
-        if (data.result === 'success') {
-          this.emit('disconnect', this.copterid);
-          this.copterid = null;
-        }
-        return cb(data);
-      });
-      return this;
+      return this.sendCommand('led', state, cb);
     };
 
-    return WebClient;
+    WebClientDriver.prototype.setVideo = function(state, cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      return this.sendCommand('video', state, cb);
+    };
 
-  })(Client);
+    WebClientDriver.prototype.emergency = function(cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      return this.sendCommand('emergency', null, cb);
+    };
+
+    WebClientDriver.prototype.disconnect = function(cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      return this.sendCommand('disconnect', null, (function(_this) {
+        return function(data) {
+          if (data.result === 'success') {
+            _this.emit('disconnect', _this.copterid);
+            _this.copterid = null;
+          }
+          return cb(data);
+        };
+      })(this));
+    };
+
+    return WebClientDriver;
+
+  })();
 
 }).call(this);
 
-},{"../utils/environment":7,"./client":1,"xmlhttprequest":9}],4:[function(require,module,exports){
+},{"../utils/environment":7,"../utils/log":8,"events":10,"underscore":12,"xmlhttprequest":9}],4:[function(require,module,exports){
 (function() {
-  var ClientFactory, Clients, Environment, EventEmitter, clientFactory, _;
+  var Client, ClientFactory, Drivers, Environment, EventEmitter, clientFactory, _;
 
   EventEmitter = require('events').EventEmitter;
 
@@ -378,7 +515,9 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
   Environment = require('./utils/environment');
 
-  Clients = require('./clients');
+  Client = require('./client');
+
+  Drivers = require('./drivers');
 
   ClientFactory = (function() {
     function ClientFactory() {}
@@ -402,7 +541,8 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (options == null) {
         options = {};
       }
-      client = new Clients.WebClient(options);
+      options.driver = Drivers.WebDriver;
+      client = new Client(options);
       this.emit('create', client);
       return client;
     };
@@ -423,9 +563,9 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
 }).call(this);
 
-},{"./clients":2,"./utils/environment":7,"events":10,"underscore":12}],"Focm2+":[function(require,module,exports){
+},{"./client":1,"./drivers":2,"./utils/environment":7,"events":10,"underscore":12}],"Focm2+":[function(require,module,exports){
 module.exports=require(4)
-},{"./clients":2,"./utils/environment":7,"events":10,"underscore":12}],"coptermanager":[function(require,module,exports){
+},{"./client":1,"./drivers":2,"./utils/environment":7,"events":10,"underscore":12}],"coptermanager":[function(require,module,exports){
 module.exports=require('Focm2+');
 },{}],7:[function(require,module,exports){
 (function() {
@@ -454,28 +594,41 @@ module.exports=require('Focm2+');
     DEBUG: 2
   };
 
-  Logger = {
-    print: function(message) {
+  Logger = Logger = (function() {
+    function Logger(loglevel, startTime, outputFn) {
+      this.loglevel = loglevel;
+      this.startTime = startTime;
+      this.outputFn = outputFn;
+    }
+
+    Logger.prototype.print = function(message) {
       var durationStr, timeElapsed;
       timeElapsed = moment().diff(this.startTime);
       durationStr = moment.utc(timeElapsed).format("mm:ss.SSS");
-      return this.emit('log', '[' + durationStr + '] ' + message);
-    },
-    printLevel: function(level, level_name, message) {
+      return this.outputFn('[' + durationStr + '] ' + message);
+    };
+
+    Logger.prototype.printLevel = function(level, level_name, message) {
       if (this.loglevel >= level) {
         return this.print('[' + level_name + '] ' + message);
       }
-    },
-    error: function(message) {
+    };
+
+    Logger.prototype.error = function(message) {
       return this.printLevel(Loglevel.ERROR, 'ERROR', message);
-    },
-    info: function(message) {
+    };
+
+    Logger.prototype.info = function(message) {
       return this.printLevel(Loglevel.INFO, 'INFO', message);
-    },
-    debug: function(message) {
+    };
+
+    Logger.prototype.debug = function(message) {
       return this.printLevel(Loglevel.DEBUG, 'DEBUG', message);
-    }
-  };
+    };
+
+    return Logger;
+
+  })();
 
   module.exports = {
     Logger: Logger,

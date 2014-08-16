@@ -26,6 +26,6 @@ config :porcelain, :driver, Porcelain.Driver.Basic
 
 config :coptermanager_core,
   python_win32_executable: "C:/Python27/python.exe",
-  serial_port: "/dev/tty.usbmodem1421",
+  serial_port: "/dev/tty.usbmodem1411",
   baudrate: 115200
   

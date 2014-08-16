@@ -21,12 +21,13 @@ defmodule CoptermanagerWeb.Api.CopterController do
     end
     json conn, JSON.encode!(json)
   end
+
   def bind(conn, _params) do
     json = %{"result" => "error", "error" => "please specify the copter name and the copter type"}
     json conn, JSON.encode!(json)
   end
 
-  def command(conn, %{"copterid" => copterid, "command" => command, "value" => value}) do
+  def command(conn, %{"copterid" => copterid, "command" => command, "value" => value}) when is_integer(copterid) do
     json = case GenServer.call(Config.get(:manager_node), {:command, copterid, command, value}) do
       :ok ->
         %{"result" => "success"}
@@ -35,6 +36,19 @@ defmodule CoptermanagerWeb.Api.CopterController do
     end
     json conn, JSON.encode!(json)
   end
+
+  def command(conn, %{"copterid" => copterid, "command" => command, "value" => value}) when not is_integer(copterid) do
+    copterid_parsed = Integer.parse(copterid)
+    cond do
+      copterid_parsed != :error and elem(copterid_parsed, 0) > 0 ->
+        command(conn, %{"copterid" => elem(copterid_parsed, 0), "command" => command, "value" => value})
+
+      true ->
+        json = %{"result" => "error", "error" => "copterid must be a integer greater than 0"}
+        json conn, JSON.encode!(json)
+    end
+  end
+
   def command(conn, %{"copterid" => copterid, "command" => command}) do
     command(conn, %{"copterid" => copterid, "command" => command, "value" => nil})
   end

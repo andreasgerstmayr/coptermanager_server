@@ -4,7 +4,7 @@ defmodule CoptermanagerCore.Manager do
   alias CoptermanagerCore.Protocol
 
   defmodule Copter do
-    defstruct [copterid, pin, name, copter_type, bind_time]
+    defstruct [:copterid, :pin, :name, :copter_type, :bind_time]
   end
 
   defmodule State do
@@ -33,7 +33,7 @@ defmodule CoptermanagerCore.Manager do
   end
 
   def handle_call({:get, copterid}, _from, state) do
-    copter = get_copter(copterid)
+    copter = get_copter(copterid, state)
     {:reply, copter, state}
   end
 
@@ -66,7 +66,7 @@ defmodule CoptermanagerCore.Manager do
   end
 
   def handle_call({:command, copterid, command, value}, _from, state) do
-    copter = get_copter(copterid)
+    copter = get_copter(copterid, state)
 
     commandcodes = Protocol.commands
     cmdcode = case command do

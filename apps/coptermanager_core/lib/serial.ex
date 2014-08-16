@@ -29,7 +29,7 @@ defmodule CoptermanagerCore.Serial do
         IO.puts "started serial daemon"
         {:ok, state}
     after
-      4000 -> {:stop, "error starting python serial daemon"}
+      2000 -> {:stop, "error starting python serial daemon"}
     end
   end
 
