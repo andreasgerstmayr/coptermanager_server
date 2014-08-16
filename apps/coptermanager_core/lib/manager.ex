@@ -89,6 +89,7 @@ defmodule CoptermanagerCore.Manager do
       "led" -> Protocol.commands.copter_led
       "flip" -> Protocol.commands.copter_flip
       "video" -> Protocol.commands.copter_video
+      "state" -> Protocol.commands.copter_getstate
       "emergency" -> Protocol.commands.copter_emergency
       "disconnect" -> Protocol.commands.copter_disconnect
       _ -> nil
@@ -122,6 +123,12 @@ defmodule CoptermanagerCore.Manager do
         cond do
           result >= 0xF0 ->
             {:reply, {:error, get_error_message(result)}, state}
+
+          command == "state" and result == Protocol.statuscodes.protocol_unbound ->
+            {:reply, :unbound, state}
+
+          command == "state" and result == Protocol.statuscodes.protocol_bound ->
+            {:reply, :bound, state}
 
           true ->
             case command do

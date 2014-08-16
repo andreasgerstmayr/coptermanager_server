@@ -31,6 +31,10 @@ defmodule CoptermanagerWeb.Api.CopterController do
     json = case GenServer.call(Config.get(:manager_node), {:command, copterid, command, value}) do
       :ok ->
         %{"result" => "success"}
+      :bound ->
+        %{"result" => "success", "state" => "bound"}
+      :unbound ->
+        %{"result" => "success", "state" => "unbound"}
       {:error, errormessage} ->
         %{"result" => "error", "error" => errormessage}
     end

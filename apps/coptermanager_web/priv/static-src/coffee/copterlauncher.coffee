@@ -81,7 +81,7 @@ class CopterLauncher
   clientCreated: (client) =>
     client.on 'log', (message) ->
       $('#consoleContainer').append '<p>' + message + '</p>'
-    client.on 'bind', =>
+    client.on 'init', =>
       @updateCopterList()
     client.on 'disconnect', =>
       @updateCopterList()
