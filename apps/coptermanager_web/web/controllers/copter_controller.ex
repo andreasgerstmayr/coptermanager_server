@@ -18,7 +18,9 @@ defmodule CoptermanagerWeb.CopterController do
     copters = GenServer.call(Config.get(:manager_node), {:list})
 
     case copter do
-      nil -> text conn, :not_found, "Copter with copterid #{copterid} not found."
+      nil ->
+        render conn, "show", copters: copters
+
       _ ->
         copter_type = GenServer.call(Config.get(:manager_node), {:get_copter_type, copter.copter_type})
         init_time = round(Time.elapsed(copter.init_time, :secs))

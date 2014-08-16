@@ -21,6 +21,8 @@ class CopterControl
     @elevator = 0x7F
 
     $(document).on 'keydown', @keyDown
+    $('#landBtn').on 'click', @landBtnClicked
+    $('#emergencyBtn').on 'click', @emergencyBtnClicked
 
   keyDown: (e) =>
     switch e.keyCode
@@ -59,6 +61,12 @@ class CopterControl
         @aileron += 10
         @aileron = 0xC3 if @aileron > 0xC3
         @client.aileron @aileron
+
+  landBtnClicked: (e) =>
+    @client.land()
+
+  emergencyBtnClicked: (e) =>
+    @client.emergency()
 
 $(document).ready ->
   new CopterControl
