@@ -44,7 +44,7 @@ defmodule CoptermanagerWeb.Api.CopterController do
         command(conn, %{"copterid" => elem(copterid_parsed, 0), "command" => command, "value" => value})
 
       true ->
-        json = %{"result" => "error", "error" => "copterid must be a integer greater than 0"}
+        json = %{"result" => "error", "error" => "copterid must be an integer greater than 0"}
         json conn, JSON.encode!(json)
     end
   end

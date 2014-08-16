@@ -13,7 +13,7 @@ defmodule CoptermanagerWeb.CopterController do
     render conn, "copterlist", within: nil, copters: copters
   end
 
-  def show(conn, %{"copterid" => copterid}) do
+  def show(conn, %{"copterid" => copterid}) when is_integer(copterid) do
     copter = GenServer.call(Config.get(:manager_node), {:get, copterid})
     copters = GenServer.call(Config.get(:manager_node), {:list})
 
@@ -23,6 +23,17 @@ defmodule CoptermanagerWeb.CopterController do
         copter_type = GenServer.call(Config.get(:manager_node), {:get_copter_type, copter.copter_type})
         flying_time = round(Time.elapsed(copter.bind_time, :secs))
         render conn, "show", copter: copter, copters: copters, copter_type: copter_type, flying_time: flying_time
+    end
+  end
+
+  def show(conn, %{"copterid" => copterid}) when not is_integer(copterid) do
+    copterid_parsed = Integer.parse(copterid)
+    cond do
+      copterid_parsed != :error and elem(copterid_parsed, 0) > 0 ->
+        show(conn, %{"copterid" => elem(copterid_parsed, 0)})
+
+      true ->
+        text conn, :not_found, "coperid must be an integer greater than 0."
     end
   end
 
