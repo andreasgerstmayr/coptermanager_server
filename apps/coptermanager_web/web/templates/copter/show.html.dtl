@@ -6,4 +6,10 @@
 <strong>Copter type:</strong> {{ copter_type }}<br />
 <strong>Flying time:</strong> {{ flying_time }}s
 
+<script type="text/javascript">
+   var API_ENDPOINT = '{{ api_endpoint }}';
+   var COPTERID = '{{ copter.copterid }}';
+</script>
+<script src="/js/lib/coptermanager-browser.js" type="text/javascript"></script>
+<script src="/js/coptercontrol.js" type="text/javascript"></script>
 {% endblock %}

@@ -22,7 +22,7 @@ defmodule CoptermanagerWeb.CopterController do
       _ ->
         copter_type = GenServer.call(Config.get(:manager_node), {:get_copter_type, copter.copter_type})
         flying_time = round(Time.elapsed(copter.bind_time, :secs))
-        render conn, "show", copter: copter, copters: copters, copter_type: copter_type, flying_time: flying_time
+        render conn, "show", copter: copter, copters: copters, copter_type: copter_type, flying_time: flying_time, api_endpoint: "http://localhost:4000/api"
     end
   end
 

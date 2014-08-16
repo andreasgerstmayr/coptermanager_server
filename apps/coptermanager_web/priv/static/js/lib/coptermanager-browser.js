@@ -304,9 +304,9 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       }
       this.endpoint = options.endpoint;
       this.log = options.log;
-      this.copterid = null;
-      this.name = null;
-      this.pin = null;
+      this.copterid = options.copterid || null;
+      this.name = options.name || null;
+      this.pin = options.pin || null;
     }
 
     WebClientDriver.prototype.apiCall = function(path, command, data, cb) {
@@ -352,7 +352,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
         cb = (function() {});
       }
       data = {};
-      if (value) {
+      if (value !== null) {
         data.value = value;
       }
       return this.apiCall(("/copter/" + this.copterid + "/") + command, command, data, cb);

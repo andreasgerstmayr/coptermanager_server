@@ -1,6 +1,7 @@
 coptermanager = require 'coptermanager'
 
 class CopterLauncher
+  
   constructor: ->
     @client = null
     coptermanager.on 'create', @clientCreated
@@ -42,14 +43,24 @@ class CopterLauncher
           alert 'error while sending emergency request'
           return
 
-  showLaunchBtn: ->
-    $('#runningBtn').fadeOut complete: ->
-      $(this).addClass('hide')
-      $('#launchBtn').fadeIn()
+  showLaunchBtn: =>
+    if @isFading
+      setTimeout @showLaunchBtn, 2000
+    else
+      @isFading = true
+      $('#runningBtn').fadeOut complete: =>
+        $('#runningBtn').addClass('hide')
+        $('#launchBtn').fadeIn complete: =>
+          @isFading = false
 
   showRunningBtn: ->
-    $('#launchBtn').fadeOut complete: ->
-      $('#runningBtn').hide().removeClass('hide').fadeIn()
+    if @isFading
+      setTimeout @showRunningBtn, 2000
+    else
+      @isFading = true
+      $('#launchBtn').fadeOut complete: =>
+        $('#runningBtn').hide().removeClass('hide').fadeIn complete: =>
+          @isFading = false
 
   updateCopterList: ->
     $.get '/copter/_copterlist', (data) ->
@@ -65,7 +76,6 @@ class CopterLauncher
       @client = coptermanager.createRemoteClient(endpoint: API_ENDPOINT)
 
     fn = new Function('client', code + '; client.after(0, function() { window.copterLauncher.scriptFinished(); });')
-    alert @client
     fn(@client)
 
   clientCreated: (client) =>
