@@ -4,7 +4,8 @@
 <h1 class="page-header">{{ copter.name }}</h1>
 
 <strong>Copter type:</strong> {{ copter_type }}<br />
-<strong>Flying time:</strong> {{ flying_time }}s
+<strong>Init time:</strong> {{ init_time }}s<br />
+<strong>Bound:</strong> {{ copter.bound|yesno:"yes,no" }}
 
 <script type="text/javascript">
    var API_ENDPOINT = '{{ api_endpoint }}';

@@ -2,9 +2,10 @@ defmodule CoptermanagerCore.Manager do
   use GenServer
   use Timex
   alias CoptermanagerCore.Protocol
+  alias CoptermanagerCore.Config
 
   defmodule Copter do
-    defstruct [:copterid, :pin, :name, :copter_type, :bind_time]
+    defstruct [:copterid, :pin, :name, :copter_type, :init_time, :bound]
   end
 
   defmodule State do
@@ -16,16 +17,28 @@ defmodule CoptermanagerCore.Manager do
   end
 
   def init(state) do
-    {:ok, _} = :timer.send_interval(Protocol.inactivity_timer * 1000, :inactivity_check)
+    {:ok, _} = :timer.send_interval(Config.get(:copters_sync_interval) * 1000, :copters_sync)
     {:ok, state}
   end
 
   defp create_copter(copterid, name, copter_type) do
-    %Copter{copterid: copterid, pin: UUID.uuid4(), name: name, copter_type: copter_type, bind_time: Time.now}
+    %Copter{copterid: copterid, pin: UUID.uuid4(), name: name, copter_type: copter_type, init_time: Time.now, bound: false}
   end
 
   defp get_copter(copterid, state) do
     Enum.find(state.copters, fn(c) -> c.copterid == copterid end)
+  end
+
+  defp get_error_message(errorcode) do
+    case Protocol.statuscodes do
+      %{:protocol_invalid_copter_type => ^errorcode} -> "invalid copter type"
+      %{:protocol_all_slots_full => ^errorcode} -> "all slots are full"
+      %{:protocol_invalid_slot => ^errorcode} -> "invalid slot"
+      %{:protocol_value_out_of_range => ^errorcode} -> "value out of range"
+      %{:protocol_emergency_mode_on => ^errorcode} -> "emergency mode on"
+      %{:protocol_unknown_command => ^errorcode} -> "unknown command"
+      _ -> "unknown error"
+    end
   end
 
   def handle_call({:list}, _from, state) do
@@ -55,11 +68,11 @@ defmodule CoptermanagerCore.Manager do
         
         cond do
           copterid >= 0xF0 ->
-            {:reply, {:error, "unknown type or all copter slots are in use"}, state}
+            {:reply, {:error, get_error_message(copterid)}, state}
 
           true ->
             copter = create_copter(copterid, name, type)
-            state = %State{copters: [copter|state.copters]}
+            state = %State{state | copters: [copter|state.copters]}
             {:reply, {:ok, copter.copterid}, state}
         end
     end
@@ -68,17 +81,16 @@ defmodule CoptermanagerCore.Manager do
   def handle_call({:command, copterid, command, value}, _from, state) do
     copter = get_copter(copterid, state)
 
-    commandcodes = Protocol.commands
     cmdcode = case command do
-      "throttle" -> commandcodes.copter_throttle
-      "rudder" -> commandcodes.copter_rudder
-      "aileron" -> commandcodes.copter_aileron
-      "elevator" -> commandcodes.copter_elevator
-      "led" -> commandcodes.copter_led
-      "flip" -> commandcodes.copter_flip
-      "video" -> commandcodes.copter_video
-      "emergency" -> commandcodes.copter_emergency
-      "disconnect" -> commandcodes.copter_disconnect
+      "throttle" -> Protocol.commands.copter_throttle
+      "rudder" -> Protocol.commands.copter_rudder
+      "aileron" -> Protocol.commands.copter_aileron
+      "elevator" -> Protocol.commands.copter_elevator
+      "led" -> Protocol.commands.copter_led
+      "flip" -> Protocol.commands.copter_flip
+      "video" -> Protocol.commands.copter_video
+      "emergency" -> Protocol.commands.copter_emergency
+      "disconnect" -> Protocol.commands.copter_disconnect
       _ -> nil
     end
 
@@ -109,13 +121,13 @@ defmodule CoptermanagerCore.Manager do
         result = GenServer.call(:serial, {copter.copterid, cmdcode, value})
         cond do
           result >= 0xF0 ->
-            {:reply, {:error, "command error"}, state}
+            {:reply, {:error, get_error_message(result)}, state}
 
           true ->
             case command do
               "disconnect" ->
                 copters = List.delete(state.copters, copter)
-                state = %State{copters: copters}
+                state = %State{state | copters: copters}
                 {:reply, :ok, state}
               _ ->
                 {:reply, :ok, state}
@@ -124,18 +136,27 @@ defmodule CoptermanagerCore.Manager do
     end
   end
 
-  def copter_active?(copter) do
-    case Time.elapsed(copter.bind_time, :secs) < Protocol.max_inactivity_time do
-      true -> true
-      false ->
-        GenServer.call(:serial, {copter.copterid, Protocol.commands.copter_disconnect, nil})
-        false
+  def copter_update_bind_state(copter) do
+    bound_state = GenServer.call(:serial, {copter.copterid, Protocol.commands.copter_getstate, 0})
+    bound = case Protocol.statuscodes do
+      %{:protocol_unbound => ^bound_state} -> false
+      %{:protocol_bound => ^bound_state} -> true
+      _ -> copter.bound
     end
+    %Copter{copter | bound: bound}
   end
 
-  def handle_info(:inactivity_check, state) do
-    copters = Enum.filter(state.copters, &copter_active?/1)
-    state = %State{copters: copters}
+  def handle_info(:copters_sync, state) do
+    bitmask = GenServer.call(:serial, {0, Protocol.commands.copter_listcopters, 0})
+
+    copters = state.copters
+    |> Enum.filter(fn(c) ->
+      use Bitwise
+      (bitmask &&& (1 <<< (c.copterid-1))) != 0
+    end)
+    |> Enum.map(&copter_update_bind_state/1)
+    
+    state = %State{state | copters: copters}
     {:noreply, state}
   end
 end
