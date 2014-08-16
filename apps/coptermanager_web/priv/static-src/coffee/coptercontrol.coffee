@@ -19,10 +19,17 @@ class CopterControl
     @rudder = 0x7F
     @aileron = 0x7F
     @elevator = 0x7F
+    @updateStatus()
 
     $(document).on 'keydown', @keyDown
     $('#landBtn').on 'click', @landBtnClicked
     $('#emergencyBtn').on 'click', @emergencyBtnClicked
+    $('#disconnectBtn').on 'click', @disconnectBtnClicked
+
+  updateStatus: ->
+    for name in ['throttle', 'rudder', 'aileron', 'elevator']
+      $("##{name}Val").text(this[name])
+    return
 
   keyDown: (e) =>
     switch e.keyCode
@@ -62,11 +69,17 @@ class CopterControl
         @aileron = 0xC3 if @aileron > 0xC3
         @client.aileron @aileron
 
+    @updateStatus()
+
   landBtnClicked: (e) =>
     @client.land()
 
   emergencyBtnClicked: (e) =>
     @client.emergency()
+
+  disconnectBtnClicked: (e) =>
+    @client.disconnect()
+    window.location.href = '/copter'
 
 $(document).ready ->
   new CopterControl
