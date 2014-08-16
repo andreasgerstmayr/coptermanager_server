@@ -14,8 +14,8 @@ defmodule CoptermanagerWeb.Api.CopterController do
 
   def bind(conn, %{"name" => name, "type" => type}) do
     json = case GenServer.call(Config.get(:manager_node), {:bind, name, type}) do
-      {:ok, uuid} ->
-        %{"result" => "success", "uuid" => uuid}
+      {:ok, copterid} ->
+        %{"result" => "success", "copterid" => copterid}
       {:error, errormessage} ->
         %{"result" => "error", "error" => errormessage}
     end
@@ -26,8 +26,8 @@ defmodule CoptermanagerWeb.Api.CopterController do
     json conn, JSON.encode!(json)
   end
 
-  def command(conn, %{"uuid" => uuid, "command" => command, "value" => value}) do
-    json = case GenServer.call(Config.get(:manager_node), {:command, uuid, command, value}) do
+  def command(conn, %{"copterid" => copterid, "command" => command, "value" => value}) do
+    json = case GenServer.call(Config.get(:manager_node), {:command, copterid, command, value}) do
       :ok ->
         %{"result" => "success"}
       {:error, errormessage} ->
@@ -35,7 +35,7 @@ defmodule CoptermanagerWeb.Api.CopterController do
     end
     json conn, JSON.encode!(json)
   end
-  def command(conn, %{"uuid" => uuid, "command" => command}) do
-    command(conn, %{"uuid" => uuid, "command" => command, "value" => nil})
+  def command(conn, %{"copterid" => copterid, "command" => command}) do
+    command(conn, %{"copterid" => copterid, "command" => command, "value" => nil})
   end
 end

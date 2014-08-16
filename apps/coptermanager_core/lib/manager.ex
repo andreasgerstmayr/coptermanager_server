@@ -4,7 +4,7 @@ defmodule CoptermanagerCore.Manager do
   alias CoptermanagerCore.Protocol
 
   defmodule Copter do
-    defstruct copterid: 0, uuid: "", name: "", copter_type: Protocol.types["hubsan_x4"], bind_time: Time.now
+    defstruct [copterid, pin, name, copter_type, bind_time]
   end
 
   defmodule State do
@@ -21,15 +21,19 @@ defmodule CoptermanagerCore.Manager do
   end
 
   defp create_copter(copterid, name, copter_type) do
-    %Copter{copterid: copterid, uuid: UUID.uuid4(), name: name, copter_type: copter_type, bind_time: Time.now}
+    %Copter{copterid: copterid, pin: UUID.uuid4(), name: name, copter_type: copter_type, bind_time: Time.now}
+  end
+
+  defp get_copter(copterid, state) do
+    Enum.find(state.copters, fn(c) -> c.copterid == copterid end)
   end
 
   def handle_call({:list}, _from, state) do
     {:reply, state.copters, state}
   end
 
-  def handle_call({:get, uuid}, _from, state) do
-    copter = Enum.find(state.copters, fn(c) -> c.uuid == uuid end)
+  def handle_call({:get, copterid}, _from, state) do
+    copter = get_copter(copterid)
     {:reply, copter, state}
   end
 
@@ -56,13 +60,13 @@ defmodule CoptermanagerCore.Manager do
           true ->
             copter = create_copter(copterid, name, type)
             state = %State{copters: [copter|state.copters]}
-            {:reply, {:ok, copter.uuid}, state}
+            {:reply, {:ok, copter.copterid}, state}
         end
     end
   end
 
-  def handle_call({:command, uuid, command, value}, _from, state) do
-    copter = Enum.find(state.copters, fn(c) -> c.uuid == uuid end)
+  def handle_call({:command, copterid, command, value}, _from, state) do
+    copter = get_copter(copterid)
 
     commandcodes = Protocol.commands
     cmdcode = case command do

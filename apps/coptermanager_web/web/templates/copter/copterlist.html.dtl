@@ -2,7 +2,7 @@
   {% if copters %}
   <ul id="copterlist" class="nav nav-sidebar">
     {% for c in copters %}
-      <li class="{% if c.uuid == copter.uuid %}active{% endif %}"><a href="/copter/{{ c.uuid }}">{{ c.name }}</a></li>
+      <li class="{% if c.copterid == copter.copterid %}active{% endif %}"><a href="/copter/{{ c.copterid }}">{{ c.name }}</a></li>
     {% endfor %}
   </ul>
   {% else %}

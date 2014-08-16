@@ -13,12 +13,12 @@ defmodule CoptermanagerWeb.CopterController do
     render conn, "copterlist", within: nil, copters: copters
   end
 
-  def show(conn, %{"uuid" => uuid}) do
-    copter = GenServer.call(Config.get(:manager_node), {:get, uuid})
+  def show(conn, %{"copterid" => copterid}) do
+    copter = GenServer.call(Config.get(:manager_node), {:get, copterid})
     copters = GenServer.call(Config.get(:manager_node), {:list})
 
     case copter do
-      nil -> text conn, :not_found, "Copter with id #{uuid} not found."
+      nil -> text conn, :not_found, "Copter with copterid #{copterid} not found."
       _ ->
         copter_type = GenServer.call(Config.get(:manager_node), {:get_copter_type, copter.copter_type})
         flying_time = round(Time.elapsed(copter.bind_time, :secs))
