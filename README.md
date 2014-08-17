@@ -31,12 +31,11 @@ It is also possible to talk directly from the client to the arduino board. The J
 ## Setup instructions
 
 1. Clone the source code of this repository
-2. Navigate to `apps/coptermanager_core` and execute `mix deps.get`
-3. Review and customize config file: `apps/coptermanager_core/config/config.exs`
-3. Navigate to `apps/coptermanager_web` and execute `mix deps.get`, `npm install`, `bower install`, `gulp build`.
-3. Review and customize config file: `apps/coptermanager_web/config/config.exs`.
+2. Review and customize config file: `apps/coptermanager_core/config/config.exs`
+3. Navigate to `apps/coptermanager_web` and execute `npm install`, `bower install`, `gulp build`
+4. Review and customize config file: `apps/coptermanager_web/config/config.exs`
+5. Navigate to `coptermanager_server` and execute `mix deps.get`
 
 ## Start instructions
 
-1. Navigate to `apps/coptermanager_core` and execute `iex --sname coptermanager_core -S mix`. Don't close this process.
-2. Navigate to `apps/coptermanager_web` and execute `iex --sname coptermanager_web -S mix phoenix.start`. Don't close this process.
+1. Navigate to `coptermanager_server` and execute `iex -S mix`

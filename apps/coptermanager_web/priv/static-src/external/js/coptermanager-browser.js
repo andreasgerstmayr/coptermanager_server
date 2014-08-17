@@ -40,6 +40,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
           return _this.exit();
         };
       })(this));
+      this.driver.on('init', (function(_this) {
+        return function(data) {
+          return _this.emit('init', data);
+        };
+      })(this));
       this.driver.on('bind', (function(_this) {
         return function(data) {
           return _this.emit('bind', data);
@@ -421,7 +426,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
         return function(data) {
           if (data.result === 'success') {
             _this.copterid = data.copterid;
-            _this.emit('init', _this.copterid);
+            _this.emit('init', data);
             return _this.pollUntilBound(cb);
           } else {
             return cb(data);

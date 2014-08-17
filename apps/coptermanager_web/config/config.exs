@@ -18,8 +18,7 @@ config :phoenix, :logger,
   level: :error
 
 config :phoenix, :template_engines,
-  dtl: PhoenixDtl.Engine,
-  eex: Phoenix.Template.EExEngine
+  dtl: PhoenixDtl.Engine
 
 config :coptermanager_web,
   manager_node: {:manager, :"coptermanager_core@#{elem(:inet.gethostname(), 1)}"}

@@ -32,3 +32,6 @@ use Mix.Config
 
 import_config "../apps/coptermanager_core/config/config.exs"
 import_config "../apps/coptermanager_web/config/config.exs"
+
+config :coptermanager_web,
+  manager_node: :manager
