@@ -4,17 +4,14 @@
 <h1 class="page-header">Launch a new copter</h1>
 
 <pre id="codeeditor">
-client.bind();
+client.bind(function() {
 
-client
+  client.takeoff()
   .after(5000, function() {
-    this.clockwise(50);
+    this.elevator(0x7F);
   })
   .after(1000, function() {
-    this.ledOn();
-  })
-  .after(3000, function() {
-    this.flipOn();
+    this.ledOff();
   })
   .after(1000, function() {
     this.land();
@@ -22,6 +19,8 @@ client
   .after(1000, function() {
     this.disconnect();
   });
+
+});
 </pre>
 
 <div id="buttonContainer" class="row">
@@ -46,9 +45,8 @@ client
 </div>
 
 <script type="text/javascript">
-   var API_ENDPOINT = '{{ api_endpoint }}';
+$(document).ready(function() {
+  window.copterLauncher = new CopterLauncher('{{ api_endpoint }}');
+});
 </script>
-<script src="/js/lib/coptermanager-browser.js" type="text/javascript"></script>
-<script src="/js/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
-<script src="/js/copterlauncher.js" type="text/javascript"></script>
 {% endblock %}

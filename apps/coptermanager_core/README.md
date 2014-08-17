@@ -1,4 +1,0 @@
-CoptermanagerCore
-=================
-
-** TODO: Add description **

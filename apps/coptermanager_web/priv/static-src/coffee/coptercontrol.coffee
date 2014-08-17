@@ -10,10 +10,10 @@ KeyCodes =
   A: 65
   D: 68
 
-class CopterControl
+class @CopterControl
 
-  constructor: ->
-    @client = coptermanager.createRemoteClient(endpoint: API_ENDPOINT, copterid: COPTERID)
+  constructor: (endpoint, copterid) ->
+    @client = coptermanager.createRemoteClient(endpoint: endpoint, copterid: copterid)
 
     @throttle = 0
     @rudder = 0x7F
@@ -80,6 +80,3 @@ class CopterControl
   disconnectBtnClicked: (e) =>
     @client.disconnect()
     window.location.href = '/copter'
-
-$(document).ready ->
-  new CopterControl

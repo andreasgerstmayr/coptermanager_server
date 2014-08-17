@@ -86,13 +86,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       }
     };
 
-    Client.prototype.bind = function(type, options, cb) {
-      if (type == null) {
-        type = 'hubsan_x4';
-      }
-      if (options == null) {
-        options = {};
-      }
+    Client.prototype.bind = function(cb) {
       if (cb == null) {
         cb = (function() {});
       }
@@ -102,7 +96,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
         return false;
       }
       this.log.info('bind');
-      this.driver.bind(type, options, cb);
+      this.driver.bind(cb);
       return this;
     };
 
@@ -246,6 +240,18 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
         return;
       }
       this.log.info('takeoff');
+      this.after(0, function() {
+        return this.driver.throttle(15);
+      });
+      this.after(200, function() {
+        return this.driver.throttle(50);
+      });
+      this.after(200, function() {
+        return this.driver.throttle(80);
+      });
+      this.after(200, function() {
+        return this.driver.throttle(120);
+      });
       return this;
     };
 
@@ -305,9 +311,18 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       this.endpoint = options.endpoint;
       this.log = options.log;
       this.copterid = options.copterid || null;
-      this.name = options.name || null;
+      this.name = options.name || 'copter' + Math.round(Math.random() * 1000);
+      this.type = options.type || 'hubsan_x4';
       this.pin = options.pin || null;
+      this.bound = false;
     }
+
+    WebClientDriver.prototype.reset = function() {
+      this.copterid = null;
+      this.name = null;
+      this.pin = null;
+      return this.bound = false;
+    };
 
     WebClientDriver.prototype.apiCall = function(path, command, data, cb) {
       var xhr;
@@ -371,34 +386,59 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       }
     };
 
-    WebClientDriver.prototype.bind = function(type, options, cb) {
-      if (type == null) {
-        type = 'hubsan_x4';
-      }
-      if (options == null) {
-        options = {};
-      }
+    WebClientDriver.prototype.pollUntilBound = function(cb) {
+      var pollFn;
+      pollFn = (function(_this) {
+        return function() {
+          return _this.getState(function(data) {
+            if (data.result === 'success') {
+              if (data.state === 'bound') {
+                _this.emit('bind', _this.copterid);
+                _this.bound = true;
+                return cb(data);
+              } else {
+                _this.log.info('not bound yet, waiting...');
+                return setTimeout(pollFn, 3000);
+              }
+            } else {
+              _this.log.error('error during binding');
+              return _this.emit('exit');
+            }
+          });
+        };
+      })(this);
+      return setTimeout(pollFn, 3000);
+    };
+
+    WebClientDriver.prototype.bind = function(cb) {
       if (cb == null) {
         cb = (function() {});
       }
-      if (options.name) {
-        this.name = options.name;
-      } else {
-        this.name = 'copter' + Math.round(Math.random() * 1000);
-      }
       this.apiCall('/copter', 'bind', {
         name: this.name,
-        type: type
+        type: this.type
       }, (function(_this) {
         return function(data) {
           if (data.result === 'success') {
             _this.copterid = data.copterid;
-            _this.emit('bind', _this.copterid);
+            _this.emit('init', _this.copterid);
+            return _this.pollUntilBound(cb);
+          } else {
+            return cb(data);
           }
-          return cb(data);
         };
       })(this));
       return this;
+    };
+
+    WebClientDriver.prototype.getState = function(cb) {
+      if (cb == null) {
+        cb = (function() {});
+      }
+      if (!this.requireConnection()) {
+        return;
+      }
+      return this.sendCommand('state', null, cb);
     };
 
     WebClientDriver.prototype.throttle = function(value, cb) {
@@ -492,7 +532,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
         return function(data) {
           if (data.result === 'success') {
             _this.emit('disconnect', _this.copterid);
-            _this.copterid = null;
+            _this.reset();
           }
           return cb(data);
         };

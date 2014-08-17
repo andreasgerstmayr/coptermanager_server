@@ -7,7 +7,7 @@
   "linguist": {:package, "0.1.1"},
   "merl": {:git, "git://github.com/erlydtl/merl.git", "28e5b3829168199e8475fa91b997e0c03b90d280", [ref: "28e5b3829168199e8475fa91b997e0c03b90d280"]},
   "phoenix": {:git, "git://github.com/phoenixframework/phoenix.git", "093406e46e7e9cf061f1ad6bafde463db1bc7568", []},
-  "phoenix_dtl": {:git, "git://github.com/andihit/phoenix_dtl.git", "7ff9914be0b4cb92cbe257f4d65f3f2298f82c4a", []},
+  "phoenix_dtl": {:git, "git://github.com/andihit/phoenix_dtl.git", "5a00ea54176f85184dbe81e18a4d8430d0cd542d", []},
   "plug": {:package, "0.5.3"},
   "porcelain": {:package, "1.1.2"},
   "ranch": {:package, "1.0.0"},

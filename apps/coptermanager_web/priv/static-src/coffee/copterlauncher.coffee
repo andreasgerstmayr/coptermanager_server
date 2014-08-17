@@ -1,8 +1,8 @@
 coptermanager = require 'coptermanager'
 
-class CopterLauncher
+class @CopterLauncher
   
-  constructor: ->
+  constructor: (@endpoint) ->
     @client = null
     coptermanager.on 'create', @clientCreated
     window.onerror = @javascriptError
@@ -30,7 +30,7 @@ class CopterLauncher
       uuid = @client.copterid
 
       $.ajax
-        url: API_ENDPOINT + '/copter/' + uuid + '/emergency'
+        url: @endpoint + '/copter/' + uuid + '/emergency'
         type: 'POST'
         dataType: 'json'
         success: (data) ->
@@ -73,9 +73,9 @@ class CopterLauncher
     $('#consoleContainer').empty()
 
     unless @client
-      @client = coptermanager.createRemoteClient(endpoint: API_ENDPOINT)
+      @client = coptermanager.createRemoteClient(endpoint: @endpoint)
 
-    fn = new Function('client', code + '; client.after(0, function() { window.copterLauncher.scriptFinished(); });')
+    fn = new Function('client', code)
     fn(@client)
 
   clientCreated: (client) =>
@@ -85,13 +85,7 @@ class CopterLauncher
       @updateCopterList()
     client.on 'disconnect', =>
       @updateCopterList()
-
-  scriptFinished: ->
-    @showLaunchBtn()
+      @showLaunchBtn()
 
   javascriptError: (error, file, lineno) ->
     $('#consoleContainer').append "<p class='text-danger'>JavaScript error: #{error}, lineno: #{lineno}</p>"
-
-
-$(document).ready ->
-  window.copterLauncher = copterLauncher = new CopterLauncher
