@@ -22,6 +22,8 @@ It is also possible to talk directly from the client to the arduino board. The J
 
   * [coptermanager-arduino](https://github.com/andihit/coptermanager-arduino) is required, please follow the instructions for setting up coptermanager-arduino.
   * [Elixir](http://elixir-lang.org) 0.15.0+
+  * [Python](https://www.python.org) tested with 2.7
+  * [pyserial](http://pyserial.sourceforge.net)
   * [node.js](http://nodejs.org)
   * [gulp](http://gulpjs.com)
   * [bower](http://bower.io)
