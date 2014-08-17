@@ -4,4 +4,4 @@ erl_crash.dump
 *.ez
 /node_modules
 /bower_components
-/priv/static/js/*.js
+/priv/static
