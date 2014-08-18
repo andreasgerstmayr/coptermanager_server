@@ -338,7 +338,6 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
     WebClientDriver.prototype.reset = function() {
       this.copterid = null;
-      this.name = null;
       this.pin = null;
       return this.bound = false;
     };

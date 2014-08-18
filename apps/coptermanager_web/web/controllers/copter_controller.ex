@@ -10,7 +10,9 @@ defmodule CoptermanagerWeb.CopterController do
 
   def copterlist(conn, _params) do
     copters = GenServer.call(Config.get(:manager_node), {:list})
-    render conn, "copterlist", within: nil, copters: copters
+    conn
+    |> assign_layout(:none)
+    |> render "copterlist", copters: copters
   end
 
   def show(conn, %{"copterid" => copterid}) when is_integer(copterid) do
