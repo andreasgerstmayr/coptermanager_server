@@ -39,3 +39,7 @@ It is also possible to talk directly from the client to the arduino board. The J
 ## Start instructions
 
 1. Navigate to `coptermanager_server` and execute `iex -S mix`
+
+## Screenshots
+
+![](http://andihit.github.io/coptermanager_server/images/webinterface1.png)
