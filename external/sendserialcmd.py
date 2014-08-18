@@ -1,8 +1,23 @@
 #!/usr/bin/env python
-
-import serial
-import time
 import sys
+
+DUMMY_SERIAL_DEVICE = False
+
+if DUMMY_SERIAL_DEVICE:
+  import time
+  class serial:
+    class Serial:
+      def __init__(self, port, baudrate):
+        pass
+      def write(self, data):
+        pass
+      def read(self, **kwargs):
+        time.sleep(1)
+        return ['\xE1']
+      def close(self):
+        pass
+else:
+  import serial
 
 
 def send_command(ser, copterid, command, value):

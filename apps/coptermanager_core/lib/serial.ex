@@ -25,7 +25,7 @@ defmodule CoptermanagerCore.Serial do
 
     %Porcelain.Process{pid: pid} = state
     receive do
-      {^pid, :data, "ok\n"} -> 
+      {^pid, :data, <<"ok", _lf :: binary>>} -> 
         IO.puts "started serial daemon"
         {:ok, state}
     after
