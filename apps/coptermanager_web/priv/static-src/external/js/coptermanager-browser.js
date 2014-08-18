@@ -65,6 +65,14 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       return this;
     };
 
+    Client.prototype.bindCallback = function(cb) {
+      if (cb) {
+        return cb.bind(this);
+      } else {
+        return cb;
+      }
+    };
+
     Client.prototype.exit = function() {
       var timeout, _i, _len, _ref, _results;
       this.log.info('exiting...');
@@ -81,11 +89,24 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       return this.driver.isConnected();
     };
 
-    Client.prototype.requireConnection = function() {
+    Client.prototype.requireConnected = function() {
       if (this.isConnected()) {
         return true;
       } else {
         this.log.error('this drone is not connected');
+        return false;
+      }
+    };
+
+    Client.prototype.isBound = function() {
+      return this.driver.isBound();
+    };
+
+    Client.prototype.requireBound = function() {
+      if (this.isBound()) {
+        return true;
+      } else {
+        this.log.error('this drone is not bound');
         this.exit();
         return false;
       }
@@ -95,13 +116,16 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (this.isConnected()) {
-        this.log.error('this drone is already connected');
+      if (!this.requireConnected()) {
+        return;
+      }
+      if (this.isBound()) {
+        this.log.error('this drone is already bound');
         this.exit();
         return false;
       }
       this.log.info('bind');
-      this.driver.bind(cb);
+      this.driver.bind(this.bindCallback(cb));
       return this;
     };
 
@@ -109,11 +133,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info("throttle " + value);
-      this.driver.throttle(value, cb);
+      this.driver.throttle(value, this.bindCallback(cb));
       return this;
     };
 
@@ -121,11 +145,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info("rudder " + value);
-      this.driver.rudder(value, cb);
+      this.driver.rudder(value, this.bindCallback(cb));
       return this;
     };
 
@@ -133,11 +157,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info("aileron " + value);
-      this.driver.aileron(value, cb);
+      this.driver.aileron(value, this.bindCallback(cb));
       return this;
     };
 
@@ -145,11 +169,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info("elevator " + value);
-      this.driver.elevator(value, cb);
+      this.driver.elevator(value, this.bindCallback(cb));
       return this;
     };
 
@@ -157,11 +181,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info("set flip " + state);
-      this.driver.setFlip(state, cb);
+      this.driver.setFlip(state, this.bindCallback(cb));
       return this;
     };
 
@@ -177,11 +201,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info("set led " + state);
-      this.driver.setLed(state, cb);
+      this.driver.setLed(state, this.bindCallback(cb));
       return this;
     };
 
@@ -197,11 +221,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info("set video " + state);
-      this.driver.setVideo(state, cb);
+      this.driver.setVideo(state, this.bindCallback(cb));
       return this;
     };
 
@@ -217,11 +241,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info('emergency');
-      this.driver.emergency(cb);
+      this.driver.emergency(this.bindCallback(cb));
       return this;
     };
 
@@ -229,11 +253,11 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireConnected()) {
         return;
       }
       this.log.info('disconnect');
-      this.driver.disconnect(cb);
+      this.driver.disconnect(this.bindCallback(cb));
       return this;
     };
 
@@ -241,21 +265,12 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info('takeoff');
       this.after(0, function() {
         return this.driver.throttle(15);
-      });
-      this.after(200, function() {
-        return this.driver.throttle(50);
-      });
-      this.after(200, function() {
-        return this.driver.throttle(80);
-      });
-      this.after(200, function() {
-        return this.driver.throttle(120);
       });
       return this;
     };
@@ -264,7 +279,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
+      if (!this.requireBound()) {
         return;
       }
       this.log.info('land');
@@ -280,20 +295,19 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 },{"./utils/log":8,"events":10,"moment":11,"underscore":12}],2:[function(require,module,exports){
 (function() {
   module.exports = {
+    SerialPortDriver: require('./serialportdriver'),
     WebDriver: require('./webdriver')
   };
 
 }).call(this);
 
-},{"./webdriver":3}],3:[function(require,module,exports){
+},{"./serialportdriver":9,"./webdriver":3}],3:[function(require,module,exports){
 (function() {
-  var Environment, EventEmitter, Log, WebClientDriver, XMLHttpRequest, _;
+  var Environment, EventEmitter, WebClientDriver, XMLHttpRequest, _;
 
   EventEmitter = require('events').EventEmitter;
 
   _ = require('underscore');
-
-  Log = require('../utils/log');
 
   Environment = require('../utils/environment');
 
@@ -382,13 +396,8 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       return !!this.copterid;
     };
 
-    WebClientDriver.prototype.requireConnection = function() {
-      if (this.isConnected()) {
-        return true;
-      } else {
-        this.log.error('this drone is not connected');
-        return false;
-      }
+    WebClientDriver.prototype.isBound = function() {
+      return this.bound;
     };
 
     WebClientDriver.prototype.pollUntilBound = function(cb) {
@@ -440,18 +449,12 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
-        return;
-      }
       return this.sendCommand('state', null, cb);
     };
 
     WebClientDriver.prototype.throttle = function(value, cb) {
       if (cb == null) {
         cb = (function() {});
-      }
-      if (!this.requireConnection()) {
-        return;
       }
       return this.sendCommand('throttle', value, cb);
     };
@@ -460,18 +463,12 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
-        return;
-      }
       return this.sendCommand('rudder', value, cb);
     };
 
     WebClientDriver.prototype.aileron = function(value, cb) {
       if (cb == null) {
         cb = (function() {});
-      }
-      if (!this.requireConnection()) {
-        return;
       }
       return this.sendCommand('aileron', value, cb);
     };
@@ -480,18 +477,12 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
-        return;
-      }
       return this.sendCommand('elevator', value, cb);
     };
 
     WebClientDriver.prototype.setFlip = function(state, cb) {
       if (cb == null) {
         cb = (function() {});
-      }
-      if (!this.requireConnection()) {
-        return;
       }
       return this.sendCommand('flip', state, cb);
     };
@@ -500,18 +491,12 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
-        return;
-      }
       return this.sendCommand('led', state, cb);
     };
 
     WebClientDriver.prototype.setVideo = function(state, cb) {
       if (cb == null) {
         cb = (function() {});
-      }
-      if (!this.requireConnection()) {
-        return;
       }
       return this.sendCommand('video', state, cb);
     };
@@ -520,18 +505,12 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       if (cb == null) {
         cb = (function() {});
       }
-      if (!this.requireConnection()) {
-        return;
-      }
       return this.sendCommand('emergency', null, cb);
     };
 
     WebClientDriver.prototype.disconnect = function(cb) {
       if (cb == null) {
         cb = (function() {});
-      }
-      if (!this.requireConnection()) {
-        return;
       }
       return this.sendCommand('disconnect', null, (function(_this) {
         return function(data) {
@@ -550,7 +529,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
 }).call(this);
 
-},{"../utils/environment":7,"../utils/log":8,"events":10,"underscore":12,"xmlhttprequest":9}],4:[function(require,module,exports){
+},{"../utils/environment":7,"events":10,"underscore":12,"xmlhttprequest":9}],4:[function(require,module,exports){
 (function() {
   var Client, ClientFactory, Drivers, Environment, EventEmitter, clientFactory, _;
 
@@ -569,27 +548,29 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 
     _.extend(ClientFactory.prototype, EventEmitter.prototype);
 
-    ClientFactory.prototype.createSerialPortClient = function(options) {
+    ClientFactory.prototype.createClient = function(options) {
       var client;
+      client = new Client(options);
+      this.emit('create', client);
+      return client;
+    };
+
+    ClientFactory.prototype.createSerialPortClient = function(options) {
       if (options == null) {
         options = {};
       }
-      client = new Clients.SerialPortClient(options);
-      this.emit('create', client);
-      return client;
+      options.driver = Drivers.SerialPortDriver;
+      return this.createClient(options);
     };
 
     ClientFactory.prototype.createLocalClient = ClientFactory.prototype.createSerialPortClient;
 
     ClientFactory.prototype.createWebClient = function(options) {
-      var client;
       if (options == null) {
         options = {};
       }
       options.driver = Drivers.WebDriver;
-      client = new Client(options);
-      this.emit('create', client);
-      return client;
+      return this.createClient(options);
     };
 
     ClientFactory.prototype.createRemoteClient = ClientFactory.prototype.createWebClient;
